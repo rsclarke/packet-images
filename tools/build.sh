@@ -64,7 +64,7 @@ version=$(echo "${distro#*_}" | sed 's|_|.|g')
 os=${distro%%_*}
 # use image get script for distros we support
 case ${os} in
-	centos* | ubuntu*) ./tools/"get-$os-image" "$version" "$arch" "work/$distro-base/$arch" ;;
+	fedora* | centos* | ubuntu*) ./tools/"get-$os-image" "$version" "$arch" "work/$distro-base/$arch" ;;
 	scientific* | debian* | freebsd* | rhel* | opensuse*) echo "Skipping raw image fetch for $os" ;;
 esac
 

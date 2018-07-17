@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+[[ $VERBOSE == 1 ]] && set -x
+set -o nounset -o pipefail -o errexit
+
+fedoraver=$1
+arch=$2
+outdir=$3
+mntpoint=/mnt/loop
+
+case "$fedoraver" in
+'28')
+	path="https://download.fedoraproject.org/pub/fedora/linux/releases/28/Cloud/$arch/images"
+	prefix=Fedora-Cloud
+	rel=28-1.1
+	file=$prefix-Base-$rel.$arch.raw.xz
+	chksm=$prefix-$rel-$arch-CHECKSUM
+	;;
+*) echo 'unknown Fedora version' && exit 1 ;;
+esac
+
+if mount | grep $mntpoint > /dev/null; then
+	echo "Abort! Is $mntpoint already in use?"
+	exit 1
+else
+	echo "Mountpoint $mntpoint is available"
+fi
+
+echo "Fetching keys"
+wget -4 https://getfedora.org/static/fedora.gpg -O ./fedora.gpg
+
+echo "Import keys"
+gpg --import ./fedora.gpg
+gpg --quiet --with-fingerprint ./fedora.gpg
+rm -f ./fedora.gpg
+
+echo "Fetching official base"
+cd "$outdir"
+wget -4 -qN "$path/$file" "$path/$chksm"
+
+echo "Verifying sha256..."
+grep "$file" $chksm | sha256sum --status -c
+statusf=$(mktemp -t get-feodra-image-keys-XXXXXX)
+gpg --verify-files --status-fd=3 $chksm 3>"$statusf"
+grep -q "VALIDSIG 128CF232A9371991C8A65695E08E7E629DB62FB1" "$statusf"
+grep $file $chksm | sudo tee /proc/self/fd/2 | sha256sum --check - | grep OK
+rm -f "$statusf"
+
+echo "Extracting raw archive..."
+unxz "$file"
+rawfile=${file%%.raw*}.raw
+sudo mkdir -p $mntpoint
+
+startsector=$(fdisk -l "$rawfile" | sed -n "/$rawfile/"' s|.*\*\s*\([0-9]\+\).*|\1|p')
+sectorsize=$(fdisk -l "$rawfile" | sed -n '/^Units:/ s|.*= \([0-9]\+\).*|\1|p')
+offset=$((startsector * sectorsize))
+
+if [ -z "$sectorsize" ]; then
+	startsector=$(file $rawfile | sed -n -e 's/.* startsector *\([0-9]*\),.*/\1/p')
+	offset=$(expr $startsector '*' 512)
+fi
+
+
+echo "Mounting raw file..."
+sudo mount -o ro,loop,offset=$offset "$rawfile" $mntpoint
+
+echo "Making rootfs archive from mount..."
+sudo tar -czf rootfs.tar.gz -C $mntpoint .
+
+echo "Cleaning up..."
+sudo umount $mntpoint
+rm -f $file $rawfile $chksm
