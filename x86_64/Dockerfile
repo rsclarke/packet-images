@@ -65,7 +65,7 @@ RUN ln -s /usr/lib/systemd/system/setcap.service /etc/systemd/system/setcap.serv
 RUN ln -s /usr/lib/systemd/system/setcap.service /etc/systemd/system/multi-user.target.wants/setcap.service
 
 # Install a specific kernel and deps
-RUN dnf -y install kernel-4.17.5-200.fc28 microcode linux-firmware grub2-efi grub2 efibootmgr
+RUN dnf -y install kernel-4.17.5-200.fc28 grub2-efi-x64 grub2 efibootmgr
 
 # Adjust generic initrd
 RUN dracut --filesystems="ext4 vfat" --mdadmconf --force /boot/initramfs-4.17.5-200.fc28.x86_64.img 4.17.5-200.fc28.x86_64
