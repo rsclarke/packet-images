@@ -7,17 +7,7 @@ LABEL Description="Fedora 28 base image for Packet.net" Vendor="Packet.net" Vers
 ADD qemu-aarch64-static /usr/bin/qemu-aarch64-static
 
 RUN dnf update  ${DNF_OPTS} -y && dnf install ${DNF_OPTS} -y \
-	audit \
-	bash \
-	bash-completion \
-	ca-certificates \
-	chrony \
-	cloud-init \
-	cloud-utils-growpart \
-	cron \
-	curl \
 	device-mapper-multipath \
-	dhclient \
 	ethstatus \
 	hwdata \
 	ioping \
@@ -25,33 +15,24 @@ RUN dnf update  ${DNF_OPTS} -y && dnf install ${DNF_OPTS} -y \
 	iperf \
 	iscsi-initiator-utils \
 	keyutils \
-	locate \
+	mlocate \
 	logrotate \
 	make \
 	mdadm \
 	mg \
 	microcode_ctl \
 	mtr \
-	net-tools \
 	NetworkManager-team \
 	NetworkManager-tui \
 	nmap-ncat \
 	ntp \
 	ntpdate \
-	openssh-clients \
-	openssh-server \
-	openssl \
-	parted \
 	pciutils \
 	redhat-lsb-core \
-	rsync \
 	rsyslog \
 	screen \
 	socat \
-	sudo \
 	sysstat \
-	systemd \
-	tar \
 	tcpdump \
 	teamd \
 	tmux \
